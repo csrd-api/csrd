@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, current_app
+from flask import Flask, redirect, url_for
 from csrd.controller import Controller
 from csrd.models import Config
 from typing import Any

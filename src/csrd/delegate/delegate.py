@@ -14,7 +14,7 @@ from httpx._types import (
     RequestFiles,
 )
 
-# TODO: remove RootModel
+# TODO: remove RootModel/pydantic
 from pydantic import RootModel
 
 
