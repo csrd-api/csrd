@@ -1,3 +1,4 @@
+from csrd_models import Entity
 from httpx import AsyncClient, Response
 from httpx._client import USE_CLIENT_DEFAULT, UseClientDefault
 from typing import Any, Callable, Union, TypeVar, Type
@@ -425,7 +426,7 @@ class Delegate:
     def _apply_model(
             response: Response,
             *,
-            model: Any = None,
+            model: Type[Entity] = None,
             model_handler: Callable[[Response], Any] = None,
     ):
         # TODO: This likely needs to be expanded/made more robust
@@ -435,6 +436,8 @@ class Delegate:
             if model is None:
                 return response.content
             res_dict = response.json()
-            return RootModel[model](model(**res_dict)).model_dump_json()
+            if issubclass(Entity, model):
+                return model(**res_dict)
+            return res_dict
         except Exception as e:
             raise e
