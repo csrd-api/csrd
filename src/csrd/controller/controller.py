@@ -42,9 +42,15 @@ class Controller:
     def models(self):
         return self._models
 
+    @property
+    def routes(self):
+        self._init_routes()
+        return self._routes[self.name]
+
     def compile(self):
-        for rule in self._routes.keys():
-            route: dict = self._routes[rule]
+        routes = self.routes
+        for rule in routes.keys():
+            route: dict = routes[rule]
 
             f = route.pop('f')
             endpoint = route.pop('endpoint', None)
@@ -114,10 +120,12 @@ class Controller:
         def decorator(f: T_route) -> T_route:
             endpoint = options.pop("endpoint", None)
 
-            self._routes[rule]['f'] = f
-            self._routes[rule]['methods'] = options.pop("methods", ["GET"])
-            self._routes[rule]['endpoint'] = endpoint
-            self._routes[rule]['error_response'] = error_response
+            self._init_routes()
+
+            self._routes[self.name][rule]['f'] = f
+            self._routes[self.name][rule]['methods'] = options.pop("methods", ["GET"])
+            self._routes[self.name][rule]['endpoint'] = endpoint
+            self._routes[self.name][rule]['error_response'] = error_response
             return f
 
         return decorator
@@ -133,6 +141,14 @@ class Controller:
 
         return self.route(rule, methods=[method], error_response=error_response, **options)
 
+    def _init_routes(self):
+        if self._routes is None:
+            self._routes = {}
+
+        if self.name not in self._routes.keys():
+            self._routes[self.name] = {}
+
+
     @property
     def _check_setup_finished(self):
         return self._blueprint._check_setup_finished
@@ -140,29 +156,34 @@ class Controller:
     @setupmethod
     def get(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["GET"]``."""
-        self._routes[rule] = {'methods': ["GET"], "request_model": request_model, "response_model": response_model, **options}
+        self._init_routes()
+        self._routes[self.name][rule] = {'methods': ["GET"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("GET", rule, options)
 
     @setupmethod
     def post(self, rule: str, *, request_model=None, response_model=None,  **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["POST"]``."""
-        self._routes[rule] = {'methods': ["POST"], "request_model": request_model, "response_model": response_model, **options}
+        self._init_routes()
+        self._routes[self.name][rule] = {'methods': ["POST"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("POST", rule, options)
 
     @setupmethod
     def put(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["PUT"]``."""
-        self._routes[rule] = {'methods': ["PUT"], "request_model": request_model, "response_model": response_model, **options}
+        self._init_routes()
+        self._routes[self.name][rule] = {'methods': ["PUT"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("PUT", rule, options)
 
     @setupmethod
     def delete(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["DELETE"]``."""
-        self._routes[rule] = {'methods': ["DELETE"], "request_model": request_model, "response_model": response_model, **options}
+        self._init_routes()
+        self._routes[self.name][rule] = {'methods': ["DELETE"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
     def patch(self, rule: str, *, request_model=None, response_model = None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["PATCH"]``."""
-        self._routes[rule] = {'methods': ["PATCH"], "request_model": request_model, "response_model": response_model, **options}
+        self._init_routes()
+        self._routes[self.name][rule] = {'methods': ["PATCH"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("PATCH", rule, options)
