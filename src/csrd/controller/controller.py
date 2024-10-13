@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 from flask.sansio.scaffold import _sentinel, T_route, setupmethod
 from flasgger import swag_from
 
@@ -17,12 +17,16 @@ class Controller:
     _routes: dict = {}
 
     _error_response = None
+    _cors_origins: str | List[str] = None
+    _cors_headers: str | List[str] = None
 
     def __init__(
             self,
             name: str,
             import_name: str,
             *,
+            cors_origins: str | List[str] = None,
+            cors_headers: str | List[str] = None,
             static_folder: str | os.PathLike[str] | None = None,
             static_url_path: str | None = None,
             template_folder: str | os.PathLike[str] | None = None,
@@ -30,9 +34,63 @@ class Controller:
             subdomain: str | None = None,
             url_defaults: dict[str, Any] | None = None,
             root_path: str | None = None,
-            cli_group: str | None = _sentinel,  # type: ignore
+            cli_group: str | None = _sentinel,
     ):
+        self._cors_origins = cors_origins
+        self._cors_headers = cors_headers
         self._blueprint = Blueprint(name, import_name, static_folder=static_folder, static_url_path=static_url_path, template_folder=template_folder, url_prefix=url_prefix, subdomain=subdomain, url_defaults=url_defaults, root_path=root_path, cli_group=cli_group)
+
+    @property
+    def cors_headers(self) -> str | List[str]:
+        return self._cors_headers or []
+
+
+    @cors_headers.setter
+    def cors_headers(self, cors_headers: str | List[str]) -> str | List[str]:
+        collector = []
+
+        if cors_headers is not None:
+            if isinstance(cors_headers, list):
+                collector.extend(cors_headers)
+            else:
+                collector.append(cors_headers)
+
+        if self._cors_headers is not None:
+            if isinstance(self._cors_headers, list):
+                collector.extend(self._cors_headers)
+            else:
+                collector.append(self._cors_headers)
+
+        if len(collector) == 0:
+            self._cors_headers = None
+        else:
+            self._cors_headers = list(set(collector))
+
+
+    @property
+    def cors_origins(self) -> str | List[str]:
+        return self._cors_origins or []
+
+    @cors_origins.setter
+    def cors_origins(self, cors_origins: str | List[str]) -> str | List[str]:
+        collector = []
+
+        if cors_origins is not None:
+            if isinstance(cors_origins, list):
+                collector.extend(cors_origins)
+            else:
+                collector.append(cors_origins)
+
+        if self._cors_origins is not None:
+            if isinstance(self._cors_origins, list):
+                collector.extend(self._cors_origins)
+            else:
+                collector.append(self._cors_origins)
+
+        if '*' in collector:
+            self._cors_origins = '*'
+        else:
+            self._cors_origins = list(set(collector))
 
     @property
     def name(self):
@@ -152,6 +210,39 @@ class Controller:
     @property
     def _check_setup_finished(self):
         return self._blueprint._check_setup_finished
+
+    # TODO: This is a work in progress
+    def register_cors(self, cors_origins: str | List[str] = None, cors_headers: str = None | List[str]) -> None:
+        """
+        Register a before_request function to apply CORS headers globally.
+        """
+
+        if cors_origins is not None:
+            self.cors_origins = cors_origins
+
+        if cors_headers is not None:
+            self.cors_headers = cors_headers
+
+        @self._blueprint.after_request
+        def apply_cors(response):
+            origin = request.headers.get('Origin')
+
+            # Apply CORS headers based on allowed origins
+            if '*' in self.cors_origins:
+                response.headers['Access-Control-Allow-Origin'] = '*'
+            elif origin in self.cors_origins:
+                response.headers['Access-Control-Allow-Origin'] = origin
+
+            if self._cors_headers is not None:
+                response.headers['Access-Control-Allow-Headers'] = ', '.join(self._cors_headers)
+
+            # Dynamically set allowed methods based on registered routes
+            allowed_methods = set()
+            for rule, route_info in self._routes.get(self.name, {}).items():
+                allowed_methods.update(route_info.get('methods', []))
+            response.headers['Access-Control-Allow-Methods'] = ', '.join(allowed_methods)
+
+            return response
 
     @setupmethod
     def get(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:

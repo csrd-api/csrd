@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for
 from csrd.controller import Controller
 from csrd.models import Config
-from typing import Any
+from typing import Any, List
 
 from csrd.utilities import Swaggerize
 
@@ -25,6 +25,18 @@ class Router:
     def app(self) -> Flask:
         return self._flask_app
 
+    @property
+    def cors_origins(self) -> str | List[str]:
+        if self._config is None:
+            return '*'
+        return self._config.cors_origins
+
+    @property
+    def cors_headers(self) -> None | str | List[str]:
+        if self._config is None:
+            return None
+        return self._config.cors_headers
+
     def _collect_model(self, model):
         if model is not None:
             name = model.__name__
@@ -36,6 +48,7 @@ class Router:
         controller.compile()
         self._controllers[controller.name] = controller
         self._config.swagger.add_definitions(controller.models)
+        controller.register_cors(self.cors_origins, self.cors_headers)
         self.app.register_blueprint(getattr(controller, '_blueprint'))
 
     def run(self, host: str | None = None, port: int | None = None, debug: bool | None = None, load_dotenv: bool = True, **options: Any):
