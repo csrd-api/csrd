@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "csrd"
-version = "0.1.5"
+version = "0.1.6"
 description = ""
 authors = ["aaron <aaron@frostmn.com>"]
 readme = "README.md"
