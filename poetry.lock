@@ -110,13 +110,13 @@ files = [
 
 [[package]]
 name = "csrd-models"
-version = "0.1.3"
+version = "0.1.10"
 description = "models lib"
 optional = false
 python-versions = "<4.0,>=3.12"
 files = [
-    {file = "csrd_models-0.1.3-py3-none-any.whl", hash = "sha256:da6e848adffa2a589ab32f52def1f97c48b4e9978bc4924128b5c9936bcff5b4"},
-    {file = "csrd_models-0.1.3.tar.gz", hash = "sha256:ccb7c9a4a865235bf67ceec4976e16400f66e479229b9b9dacee2ee23b0daa9d"},
+    {file = "csrd_models-0.1.10-py3-none-any.whl", hash = "sha256:76a478ada72714e71ca398db5baed081cfd8ac95f923d5a1928cbcbcf57a9461"},
+    {file = "csrd_models-0.1.10.tar.gz", hash = "sha256:aa454808216df458e99557764a0fb69fe5f3ec4d49c37c7046b1a95f18885935"},
 ]
 
 [package.dependencies]
@@ -125,13 +125,13 @@ pre-commit = ">=3.8.0,<4.0.0"
 
 [[package]]
 name = "csrd-swaggerize"
-version = "0.1.3"
+version = "0.1.10"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.12"
 files = [
-    {file = "csrd_swaggerize-0.1.3-py3-none-any.whl", hash = "sha256:92432ac8ad5bea8298706b00890c4cd552fafa912c664d3da70e61ad2a89472c"},
-    {file = "csrd_swaggerize-0.1.3.tar.gz", hash = "sha256:b8abe394a6b52ca8863573432a16dac8b091d2950cc3dae9eaec947c0cda7a6d"},
+    {file = "csrd_swaggerize-0.1.10-py3-none-any.whl", hash = "sha256:849b35bb0677eb50bbe3d27d0cdf2129394b1d280a018dbff47c67f01d447951"},
+    {file = "csrd_swaggerize-0.1.10.tar.gz", hash = "sha256:58a741617371e3da8dfcda3420059334fba90799772da8072934eacb67c55320"},
 ]
 
 [package.dependencies]
@@ -143,13 +143,13 @@ pre-commit = ">=3.8.0,<4.0.0"
 
 [[package]]
 name = "csrd-utils"
-version = "0.1.3"
+version = "0.1.10"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.12"
 files = [
-    {file = "csrd_utils-0.1.3-py3-none-any.whl", hash = "sha256:04d70d49016ee8b6a6664cdfb9174bfe9d1e2b4ac2307fa40d64bc36d042be77"},
-    {file = "csrd_utils-0.1.3.tar.gz", hash = "sha256:3a6459383275fc9ae0a84cb544bffbdc2dc5fddf7cebd7f1cd68c208ac74f35b"},
+    {file = "csrd_utils-0.1.10-py3-none-any.whl", hash = "sha256:d38f70741cd7ec276d41c4aa311fb6d1be92db31fd60478a5f1005ef9ac7bd17"},
+    {file = "csrd_utils-0.1.10.tar.gz", hash = "sha256:6e229fa2b7cfca51e58904e8ead7d8715ac9cd63424cadde62985075b01a6c8b"},
 ]
 
 [package.dependencies]
