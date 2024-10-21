@@ -7,6 +7,7 @@ from csrd.utilities import Swaggerize
 
 
 class Router:
+    _api_prefix = None
     _flask_app: Flask = None
     _swaggerize: Swaggerize = None
     _config: Config = None
@@ -14,12 +15,17 @@ class Router:
     _models = {}
     _error_response = None
 
-    def __init__(self, import_name: str, *, config: Config = None, error_response: Any = None):
+    def __init__(self, import_name: str, *, api_prefix: str = None, config: Config = None, error_response: Any = None):
+        self._api_prefix = api_prefix
         self._flask_app = Flask(import_name)
         self._config = config or Config()
         if error_response is not None:
             self._collect_model(error_response)
             self._error_response = error_response
+
+    @property
+    def api_prefix(self) -> str:
+        return self._api_prefix or self._config.api_prefix
 
     @property
     def app(self) -> Flask:
@@ -49,6 +55,7 @@ class Router:
         self.app.route('/')(lambda: redirect(url_for('flasgger.apidocs')))
 
     def register_controller(self, controller: 'Controller'):
+        controller.api_prefix = self.api_prefix
         controller.default_models(error_response=self._error_response)
         controller.compile()
         self._controllers[controller.name] = controller

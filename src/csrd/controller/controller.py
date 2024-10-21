@@ -10,6 +10,7 @@ import os
 
 
 class Controller:
+    _api_prefix: str = None
     _blueprint: Blueprint = None
     _api_base_path: str
     _config: Config
@@ -25,6 +26,7 @@ class Controller:
             name: str,
             import_name: str,
             *,
+            api_prefix: str = None,
             cors_origins: str | List[str] = None,
             cors_headers: str | List[str] = None,
             static_folder: str | os.PathLike[str] | None = None,
@@ -36,14 +38,22 @@ class Controller:
             root_path: str | None = None,
             cli_group: str | None = _sentinel,
     ):
+        self._api_prefix = api_prefix
         self._cors_origins = cors_origins
         self._cors_headers = cors_headers
         self._blueprint = Blueprint(name, import_name, static_folder=static_folder, static_url_path=static_url_path, template_folder=template_folder, url_prefix=url_prefix, subdomain=subdomain, url_defaults=url_defaults, root_path=root_path, cli_group=cli_group)
 
     @property
+    def api_prefix(self) -> str:
+        return self._api_prefix or '/api'
+
+    @api_prefix.setter
+    def api_prefix(self, value: str) -> None:
+        self._api_prefix = value
+
+    @property
     def cors_headers(self) -> str | List[str]:
         return self._cors_headers or []
-
 
     @cors_headers.setter
     def cors_headers(self, cors_headers: str | List[str]) -> str | List[str]:
@@ -65,7 +75,6 @@ class Controller:
             self._cors_headers = None
         else:
             self._cors_headers = list(set(collector))
-
 
     @property
     def cors_origins(self) -> str | List[str]:
@@ -147,7 +156,7 @@ class Controller:
         return Swaggerize.build_docs(func, **kwargs)
 
     @setupmethod
-    def route(self, rule: str, *, error_response = None, **options: Any) -> Callable[[T_route], T_route]:
+    def route(self, rule: str, *, error_response=None, **options: Any) -> Callable[[T_route], T_route]:
         """Decorate a view function to register it with the given URL
         rule and options. Calls :meth:`add_url_rule`, which has more
         details about the implementation.
@@ -206,10 +215,14 @@ class Controller:
         if self.name not in self._routes.keys():
             self._routes[self.name] = {}
 
-
     @property
     def _check_setup_finished(self):
         return self._blueprint._check_setup_finished
+
+    @staticmethod
+    def _verify_rule(rule: str):
+        # TODO: make this enforce rules
+        print('starts with /', rule.startswith('/'))
 
     # TODO: This is a work in progress
     def register_cors(self, cors_origins: str | List[str] = None, cors_headers: str = None | List[str]) -> None:
@@ -248,6 +261,8 @@ class Controller:
     def get(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["GET"]``."""
         self._init_routes()
+        self._verify_rule(rule)
+        rule = f'{self.api_prefix}{rule}'
         self._routes[self.name][rule] = {'methods': ["GET"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("GET", rule, options)
 
@@ -255,6 +270,8 @@ class Controller:
     def post(self, rule: str, *, request_model=None, response_model=None,  **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["POST"]``."""
         self._init_routes()
+        self._verify_rule(rule)
+        rule = f'{self.api_prefix}{rule}'
         self._routes[self.name][rule] = {'methods': ["POST"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("POST", rule, options)
 
@@ -262,6 +279,8 @@ class Controller:
     def put(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["PUT"]``."""
         self._init_routes()
+        self._verify_rule(rule)
+        rule = f'{self.api_prefix}{rule}'
         self._routes[self.name][rule] = {'methods': ["PUT"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("PUT", rule, options)
 
@@ -269,6 +288,8 @@ class Controller:
     def delete(self, rule: str, *, request_model=None, response_model=None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["DELETE"]``."""
         self._init_routes()
+        self._verify_rule(rule)
+        rule = f'{self.api_prefix}{rule}'
         self._routes[self.name][rule] = {'methods': ["DELETE"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("DELETE", rule, options)
 
@@ -276,5 +297,7 @@ class Controller:
     def patch(self, rule: str, *, request_model=None, response_model = None, **options: Any) -> Callable[[T_route], T_route]:
         """Shortcut for :meth:`route` with ``methods=["PATCH"]``."""
         self._init_routes()
+        self._verify_rule(rule)
+        rule = f'{self.api_prefix}{rule}'
         self._routes[self.name][rule] = {'methods': ["PATCH"], "request_model": request_model, "response_model": response_model, **options}
         return self._method_route("PATCH", rule, options)
