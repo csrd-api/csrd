@@ -22,7 +22,7 @@ class Router:
             self._error_response = error_response
 
     def __call__(self, environ, start_response):
-        self._setup_swagger()
+        # self._setup_swagger()
         return self.app(environ, start_response)
 
     @property
