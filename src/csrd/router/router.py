@@ -21,10 +21,6 @@ class Router:
             self._collect_model(error_response)
             self._error_response = error_response
 
-    def __call__(self, environ, start_response):
-        # self._setup_swagger()
-        return self.app(environ, start_response)
-
     @property
     def app(self) -> Flask:
         return self._flask_app
