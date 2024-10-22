@@ -6,6 +6,7 @@ from csrd.models import Config
 from csrd.utilities.swaggerize import Swaggerize
 
 from typing import Any, Callable, Dict, List
+import inspect
 import os
 
 
@@ -127,10 +128,23 @@ class Controller:
             if error_response is None:
                 error_response = self._error_response
 
-            self._blueprint.add_url_rule(rule, endpoint, f, **route)
-            docs = self._build_docs(func=f, tags=[self.name], error_response=error_response, request_model=request_model, response_model=response_model)
+            # Inspect the signature of the function to see what parameters it expects
+            sig = inspect.signature(f)
+            param_names = sig.parameters.keys()
 
-            swag_from(specs=docs, endpoint=endpoint)(f)
+            def wrapped_func(*args, **kwargs):
+                """ Wrap the original function to handle path and request """
+                # Inject request if the function expects it
+                if 'request' in param_names:
+                    kwargs['request'] = request
+
+                # Call the original function with the updated arguments
+                return f(*args, **kwargs)
+
+            self._blueprint.add_url_rule(rule, endpoint, wrapped_func, **route)
+            docs = self._build_docs(func=wrapped_func, tags=[self.name], error_response=error_response, request_model=request_model, response_model=response_model)
+
+            swag_from(specs=docs, endpoint=endpoint)(wrapped_func)
 
     def _collect_model(self, model):
         if model is not None:
